@@ -74,21 +74,6 @@ namespace Client
 		/// </summary>
 		private void OnClientSceneWorldReconnectBroadcastReceived(SceneWorldReconnectBroadcast msg)
 		{
-			List<Scene> toUnload = new List<Scene>();
-			for (int i = 0; i < SceneManager.sceneCount; i++)
-			{
-				Scene scene = SceneManager.GetSceneAt(i);
-				if(scene.name != "ClientBootstrap" && scene.name != "MovedObjectsHolder" && scene.name != "DontDestroyOnLoad")
-				{
-					toUnload.Add(scene);
-				}
-			}
-
-			for (int i = 0; i < toUnload.Count; i++)
-			{
-                SceneManager.UnloadSceneAsync(toUnload[i]);
-            }
-
 			ConnectToServer(msg.address, msg.port);
 		}
 

@@ -53,13 +53,6 @@ namespace Server
 
 		public static T Get<T>() where T : ServerBehaviour
 		{
-			Debug.Log("Get server behavior available types:");
-			foreach (var item in behaviours.Keys)
-			{
-				Debug.Log(item.FullName);
-			}
-			Debug.Log("-- End Types --");
-
 			if (behaviours.TryGetValue(typeof(T), out ServerBehaviour result))
 			{
 				return result as T;
