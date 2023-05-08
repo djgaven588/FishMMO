@@ -21,20 +21,15 @@ public class SceneTeleporter : NetworkBehaviour
 
 	void OnTriggerEnter(Collider other)
 	{
-		Debug.Log("Collided");
-		Debug.Log(sceneServerSystem != null);
 		if (other != null && other.gameObject != null && sceneServerSystem != null)
 		{
-			Debug.Log("First success");
 			Character character = other.gameObject.GetComponent<Character>();
 			if (character != null && !character.isTeleporting)
 			{
-				Debug.Log("Second success");
 				if (sceneServerSystem.worldSceneDetailsCache != null &&
 					sceneServerSystem.worldSceneDetailsCache.scenes.TryGetValue(character.sceneName, out WorldSceneDetails details) &&
 					details.teleporters.TryGetValue(gameObject.name, out SceneTeleporterDetails teleporter))
 				{
-					Debug.Log("TELEPORTING!");
 					character.isTeleporting = true;
 
 					// should we prevent players from moving to a different scene if they are in combat?
