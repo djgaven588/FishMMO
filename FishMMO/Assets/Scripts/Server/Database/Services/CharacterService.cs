@@ -224,8 +224,8 @@ namespace Server.Services
 					// set the prefab rotation so our player spawns with the proper orientation
 					transform.rotation = spawnRot;
 
-					// instantiate the character object
-					NetworkObject nob = networkManager.GetPooledInstantiated(prefab, prefab.SpawnableCollectionId, true);
+                    // instantiate the character object
+                    NetworkObject nob = GameObject.Instantiate(prefab);//networkManager.GetPooledInstantiated(prefab, prefab.SpawnableCollectionId, true);
 
 					// immediately deactive the game object.. we are not ready yet
 					nob.gameObject.SetActive(false);

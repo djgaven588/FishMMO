@@ -8,33 +8,33 @@ public class SceneTeleporter : NetworkBehaviour
 {
 	private SceneServerSystem sceneServerSystem;
 
-	public override void OnStartNetwork()
+	public void Awake()
 	{
-		base.OnStartNetwork();
-
-		if (!IsServer)
-		{
-			enabled = false;
-		}
+		Debug.Log("On Start Network");
 
 		if (sceneServerSystem == null)
 		{
+			Debug.Log("Getting scene server system");
 			sceneServerSystem = ServerBehaviour.Get<SceneServerSystem>();
 		}
 	}
 
 	void OnTriggerEnter(Collider other)
 	{
+		Debug.Log("Collided");
+		Debug.Log(sceneServerSystem != null);
 		if (other != null && other.gameObject != null && sceneServerSystem != null)
 		{
+			Debug.Log("First success");
 			Character character = other.gameObject.GetComponent<Character>();
 			if (character != null && !character.isTeleporting)
 			{
+				Debug.Log("Second success");
 				if (sceneServerSystem.worldSceneDetailsCache != null &&
 					sceneServerSystem.worldSceneDetailsCache.scenes.TryGetValue(character.sceneName, out WorldSceneDetails details) &&
-					details.teleporters.TryGetValue(gameObject.name, out SceneTeleporterDetails teleporter) &&
-					gameObject.name.Equals(teleporter.from))
+					details.teleporters.TryGetValue(gameObject.name, out SceneTeleporterDetails teleporter))
 				{
+					Debug.Log("TELEPORTING!");
 					character.isTeleporting = true;
 
 					// should we prevent players from moving to a different scene if they are in combat?
@@ -49,9 +49,6 @@ public class SceneTeleporter : NetworkBehaviour
 						character.DamageController.immortal = true;
 					}
 
-					// remove ownership of the connections character
-					character.RemoveOwnership();
-
 					character.sceneName = teleporter.toScene;
 					character.transform.SetPositionAndRotation(teleporter.toPosition, character.transform.rotation);// teleporter.toRotation);
 
@@ -59,11 +56,8 @@ public class SceneTeleporter : NetworkBehaviour
 
 					// save the character with new scene and position
 					using var dbContext = sceneServerSystem.Server.DbContextFactory.CreateDbContext();
-					CharacterService.SaveCharacter(dbContext, character, true);
+					CharacterService.SaveCharacter(dbContext, character, false);
 					dbContext.SaveChanges();
-
-					ServerManager.Despawn(character.NetworkObject, DespawnType.Pool);
-					character.gameObject.SetActive(false);
 
 					// tell the client to reconnect to the world server for automatic re-entry
 					character.Owner.Broadcast(new SceneWorldReconnectBroadcast()
@@ -71,7 +65,13 @@ public class SceneTeleporter : NetworkBehaviour
 						address = sceneServerSystem.Server.relayAddress,
 						port = sceneServerSystem.Server.relayPort,
 					});
-				}
+
+                    character.Owner.Disconnect(false);
+
+                    //sceneServerSystem.ServerManager.Despawn(character.NetworkObject, DespawnType.Destroy);
+                    //ServerManager.Despawn(character.NetworkObject, DespawnType.Pool);
+                    //character.gameObject.SetActive(false);
+                }
 				else
 				{
 					// destination not found
