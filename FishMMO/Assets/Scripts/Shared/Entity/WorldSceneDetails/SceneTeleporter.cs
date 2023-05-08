@@ -10,11 +10,8 @@ public class SceneTeleporter : NetworkBehaviour
 
 	public void Awake()
 	{
-		Debug.Log("On Start Network");
-
 		if (sceneServerSystem == null)
 		{
-			Debug.Log("Getting scene server system");
 			sceneServerSystem = ServerBehaviour.Get<SceneServerSystem>();
 		}
 	}
@@ -62,10 +59,6 @@ public class SceneTeleporter : NetworkBehaviour
 					});
 
                     character.Owner.Disconnect(false);
-
-                    //sceneServerSystem.ServerManager.Despawn(character.NetworkObject, DespawnType.Destroy);
-                    //ServerManager.Despawn(character.NetworkObject, DespawnType.Pool);
-                    //character.gameObject.SetActive(false);
                 }
 				else
 				{
