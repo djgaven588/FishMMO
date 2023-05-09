@@ -8,7 +8,7 @@ public class SceneTeleporter : NetworkBehaviour
 {
 	private SceneServerSystem sceneServerSystem;
 
-	public void Awake()
+	void Awake()
 	{
 		if (sceneServerSystem == null)
 		{
@@ -42,14 +42,14 @@ public class SceneTeleporter : NetworkBehaviour
 					}
 
 					character.sceneName = teleporter.toScene;
-					character.transform.SetPositionAndRotation(teleporter.toPosition, character.transform.rotation);// teleporter.toRotation);
-
-					Debug.Log("[" + DateTime.UtcNow + "] " + character.characterName + " has been saved at: " + character.transform.position.ToString());
+					character.Motor.SetPositionAndRotation(teleporter.toPosition, character.transform.rotation);// teleporter.toRotation);
 
 					// save the character with new scene and position
 					using var dbContext = sceneServerSystem.Server.DbContextFactory.CreateDbContext();
 					CharacterService.SaveCharacter(dbContext, character, false);
 					dbContext.SaveChanges();
+
+					Debug.Log("[" + DateTime.UtcNow + "] " + character.characterName + " has been saved at: " + character.transform.position.ToString());
 
 					// tell the client to reconnect to the world server for automatic re-entry
 					character.Owner.Broadcast(new SceneWorldReconnectBroadcast()
@@ -58,8 +58,8 @@ public class SceneTeleporter : NetworkBehaviour
 						port = sceneServerSystem.Server.relayPort,
 					});
 
-                    character.Owner.Disconnect(false);
-                }
+					sceneServerSystem.ServerManager.Despawn(character.NetworkObject, DespawnType.Pool);
+				}
 				else
 				{
 					// destination not found

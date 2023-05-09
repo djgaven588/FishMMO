@@ -5,12 +5,12 @@ public class PhysicsTicker : MonoBehaviour
 {
 	private PhysicsScene _physicsScene;
 
-	public void Initialize(PhysicsScene scene)
+	internal void InitializeOnce(PhysicsScene physicsScene)
 	{
 		if (InstanceFinder.TimeManager != null)
 		{
 			InstanceFinder.TimeManager.OnTick += TimeManager_OnTick;
-			_physicsScene = scene;
+			_physicsScene = physicsScene;
 		}
 	}
 
