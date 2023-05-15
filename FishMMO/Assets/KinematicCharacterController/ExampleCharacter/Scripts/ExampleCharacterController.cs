@@ -1,4 +1,5 @@
-﻿using FishNet.Object.Prediction;
+﻿using FishNet.Managing.Timing;
+using FishNet.Object.Prediction;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -94,6 +95,9 @@ namespace KinematicCharacterController.Examples
         private Vector3 lastInnerNormal = Vector3.zero;
         private Vector3 lastOuterNormal = Vector3.zero;
 
+        public CharacterAttributeTemplate MoveSpeedAttributeTemplate;
+        public CharacterAttributeTemplate JumpSpeedAttributeTemplate;
+
         private void Awake()
         {
             // Handle initial state
@@ -107,7 +111,51 @@ namespace KinematicCharacterController.Examples
 		{
 			_moveInputVector = Vector3.zero;
 			_lookInputVector = Vector3.zero;
+
+			CharacterAttributeController attributeController = GetComponent<CharacterAttributeController>();
+
+			if (attributeController == null) return;
+
+			if (attributeController.TryGetAttribute(MoveSpeedAttributeTemplate, out CharacterAttribute moveSpeedAttribute))
+			{
+				moveSpeedAttribute.OnAttributeUpdated += OnAttributeMovementSpeedUpdated;
+                OnAttributeMovementSpeedUpdated(moveSpeedAttribute, TimeManager.UNSET_TICK);
+			}
+
+            if(attributeController.TryGetAttribute(JumpSpeedAttributeTemplate, out CharacterAttribute jumpSpeedAttribute))
+            {
+                jumpSpeedAttribute.OnAttributeUpdated += OnAttributeJumpSpeedUpdated;
+                OnAttributeJumpSpeedUpdated(jumpSpeedAttribute, TimeManager.UNSET_TICK);
+            }
 		}
+
+		private void OnDisable()
+		{
+			CharacterAttributeController attributeController = GetComponent<CharacterAttributeController>();
+
+            if (attributeController == null) return;
+
+			if (attributeController.TryGetAttribute(MoveSpeedAttributeTemplate, out CharacterAttribute moveSpeedAttribute))
+			{
+				moveSpeedAttribute.OnAttributeUpdated -= OnAttributeMovementSpeedUpdated;
+			}
+
+			if (attributeController.TryGetAttribute(JumpSpeedAttributeTemplate, out CharacterAttribute jumpSpeedAttribute))
+			{
+				jumpSpeedAttribute.OnAttributeUpdated -= OnAttributeJumpSpeedUpdated;
+			}
+		}
+
+        private void OnAttributeMovementSpeedUpdated(CharacterAttribute attribute, uint applyTick)
+        {
+            MaxStableMoveSpeed = attribute.FinalValueAsPct;
+            StableMovementSharpness = attribute.FinalValueAsPct * 2;
+        }
+
+        private void OnAttributeJumpSpeedUpdated(CharacterAttribute attribute, uint applyTick)
+        {
+            JumpUpSpeed = attribute.FinalValueAsPct;
+        }
 
 		/// <summary>
 		/// Handles movement state transitions and enter/exit callbacks

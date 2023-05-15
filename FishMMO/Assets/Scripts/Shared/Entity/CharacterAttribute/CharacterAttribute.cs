@@ -13,27 +13,28 @@ public class CharacterAttribute
 	private Dictionary<string, CharacterAttribute> children = new Dictionary<string, CharacterAttribute>();
 	private Dictionary<string, CharacterAttribute> dependencies = new Dictionary<string, CharacterAttribute>();
 
-	public delegate void AttributeUpdated(CharacterAttribute item);
+	public delegate void AttributeUpdated(CharacterAttribute item, uint applyTick);
 	public event AttributeUpdated OnAttributeUpdated;
 
-	protected virtual void Internal_OnAttributeChanged(CharacterAttribute item)
+	protected virtual void Internal_OnAttributeChanged(CharacterAttribute item, uint applyTick)
 	{
-		OnAttributeUpdated?.Invoke(item);
+		OnAttributeUpdated?.Invoke(item, applyTick);
 	}
 
 	public int BaseValue { get { return baseValue; } }
-	public void SetValue(int newValue)
+	public void SetValue(int newValue, uint applyTick)
 	{
-		SetValue(newValue, false);
+		SetValue(newValue, false, applyTick);
 	}
-	public void SetValue(int newValue, bool skipUpdate)
+
+	public void SetValue(int newValue, bool skipUpdate, uint applyTick)
 	{
 		if (baseValue != newValue)
 		{
 			baseValue = newValue;
 			if (!skipUpdate)
 			{
-				UpdateValues(true);
+				UpdateValues(true, applyTick);
 			}
 		}
 	}
@@ -41,11 +42,11 @@ public class CharacterAttribute
 	/// Used to add or subtract an amount from the base value of the attribute. Addition: AddValue(123) | Subtraction: AddValue(-123)
 	/// </summary>
 	/// <param name="amount"></param>
-	public void AddValue(int amount)
+	public void AddValue(int amount, uint applyTick)
 	{
-		AddValue(amount, false);
+		AddValue(amount, false, applyTick);
 	}
-	public void AddValue(int amount, bool skipUpdate)
+	public void AddValue(int amount, bool skipUpdate, uint applyTick)
 	{
 		int tmp = baseValue + amount;
 		if (baseValue != tmp)
@@ -53,7 +54,7 @@ public class CharacterAttribute
 			baseValue = tmp;
 			if (!skipUpdate)
 			{
-				UpdateValues(true);
+				UpdateValues(true, applyTick);
 			}
 		}
 	}
@@ -116,21 +117,21 @@ public class CharacterAttribute
 		parents.Remove(parent.Template.Name);
 	}
 
-	public void AddChild(CharacterAttribute child)
+	public void AddChild(CharacterAttribute child, uint applyTick)
 	{
 		if (!children.ContainsKey(child.Template.Name))
 		{
 			children.Add(child.Template.Name, child);
 			child.AddParent(this);
-			UpdateValues();
+			UpdateValues(applyTick);
 		}
 	}
 
-	public void RemoveChild(CharacterAttribute child)
+	public void RemoveChild(CharacterAttribute child, uint applyTick)
 	{
 		children.Remove(child.Template.Name);
 		child.RemoveParent(this);
-		UpdateValues();
+		UpdateValues(applyTick);
 	}
 
 	public void AddDependant(CharacterAttribute dependency)
@@ -184,26 +185,26 @@ public class CharacterAttribute
 		return (!dependencies.TryGetValue(name, out attribute)) ? 0 : attribute.FinalValue;
 	}
 
-	public void UpdateValues()
+	public void UpdateValues(uint applyTick)
 	{
-		UpdateValues(false);
+		UpdateValues(false, applyTick);
 	}
-	public void UpdateValues(bool forceUpdate)
+	public void UpdateValues(bool forceUpdate, uint applyTick)
 	{
 		int oldFinalValue = finalValue;
 
-		ApplyChildren();
+		ApplyChildren(applyTick);
 
 		if (forceUpdate || finalValue != oldFinalValue)
 		{
 			foreach (CharacterAttribute parent in parents.Values)
 			{
-				parent.UpdateValues();
+				parent.UpdateValues(applyTick);
 			}
 		}
 	}
 
-	private void ApplyChildren()
+	private void ApplyChildren(uint applyTick)
 	{
 		modifier = 0;
 		if (Template.Formulas != null)
@@ -218,7 +219,7 @@ public class CharacterAttribute
 			}
 		}
 		finalValue = CalculateFinalValue();
-		OnAttributeUpdated?.Invoke(this);
+		OnAttributeUpdated?.Invoke(this, applyTick);
 	}
 
 	private int CalculateFinalValue()

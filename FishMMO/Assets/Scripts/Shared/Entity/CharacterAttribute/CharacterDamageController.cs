@@ -1,4 +1,5 @@
-﻿using FishNet.Object;
+﻿using FishNet.Managing.Timing;
+using FishNet.Object;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -63,7 +64,7 @@ public class CharacterDamageController : NetworkBehaviour, IDamageable, IHealabl
 		if (resourceInstance != null && resourceInstance.CurrentValue > 0)
 		{
 			amount = ApplyModifiers(character, damageAttribute, amount);
-			resourceInstance.Consume(amount);
+			resourceInstance.Consume(amount, TimeManager.UNSET_TICK);
 
 			// tell the client to display damage
 			//UILabel3D.Create(amount.ToString(), 24, damageAttribute.DisplayColor, true, transform);
@@ -117,7 +118,7 @@ public class CharacterDamageController : NetworkBehaviour, IDamageable, IHealabl
 		{
 			//UILabel3D.Create(amount.ToString(), 24, Color.blue, true, transform);
 
-			resourceInstance.Gain(amount);
+			resourceInstance.Gain(amount, TimeManager.UNSET_TICK);
 
 			//SELF
 			if (character.QuestController != null)

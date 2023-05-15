@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using FishNet.Managing.Timing;
 using FishNet.Object;
 
 public class CharacterAttributeController : NetworkBehaviour
@@ -17,12 +18,12 @@ public class CharacterAttributeController : NetworkBehaviour
 				if (attribute.IsResourceAttribute)
 				{
 					CharacterResourceAttribute resource = new CharacterResourceAttribute(attribute.ID, attribute.InitialValue, attribute.InitialValue, 0);
-					AddAttribute(resource);
+					AddAttribute(resource, TimeManager.UNSET_TICK);
 					resourceAttributes.Add(resource.Template.Name, resource);
 				}
 				else
 				{
-					AddAttribute(new CharacterAttribute(attribute.ID, attribute.InitialValue, 0));
+					AddAttribute(new CharacterAttribute(attribute.ID, attribute.InitialValue, 0), TimeManager.UNSET_TICK);
 				}
 			}
 		}
@@ -73,7 +74,7 @@ public class CharacterAttributeController : NetworkBehaviour
 		return resourceAttributes.TryGetValue(name, out attribute);
 	}
 
-	public void AddAttribute(CharacterAttribute instance)
+	public void AddAttribute(CharacterAttribute instance, uint applyTick)
 	{
 		if (!attributes.ContainsKey(instance.Template.Name))
 		{
@@ -84,7 +85,7 @@ public class CharacterAttributeController : NetworkBehaviour
 				CharacterAttribute parentInstance;
 				if (attributes.TryGetValue(parent.Name, out parentInstance))
 				{
-					parentInstance.AddChild(instance);
+					parentInstance.AddChild(instance, applyTick);
 				}
 			}
 
@@ -93,7 +94,7 @@ public class CharacterAttributeController : NetworkBehaviour
 				CharacterAttribute childInstance;
 				if (attributes.TryGetValue(child.Name, out childInstance))
 				{
-					instance.AddChild(childInstance);
+					instance.AddChild(childInstance, applyTick);
 				}
 			}
 
@@ -117,7 +118,7 @@ public class CharacterAttributeController : NetworkBehaviour
 			attributes.TryGetValue(template.Name, out CharacterAttribute attribute))
 		{
 			attribute.SetModifier(msg.modifier);
-			attribute.SetValue(msg.baseValue);
+			attribute.SetValue(msg.baseValue, msg.applyTick);
 		}
 	}
 
@@ -132,7 +133,7 @@ public class CharacterAttributeController : NetworkBehaviour
 				attributes.TryGetValue(template.Name, out CharacterAttribute attribute))
 			{
 				attribute.SetModifier(subMsg.modifier);
-				attribute.SetValue(subMsg.baseValue);
+				attribute.SetValue(subMsg.baseValue, msg.applyTick);
 			}
 		}
 	}

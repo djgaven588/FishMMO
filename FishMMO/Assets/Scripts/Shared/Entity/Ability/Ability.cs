@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using FishNet.Managing.Timing;
+using System.Collections.Generic;
 
 public class Ability
 {
@@ -234,7 +235,7 @@ public class Ability
 			if (character.AttributeController.TryGetResourceAttribute(BLOOD_RESOURCE, out resource) &&
 				resource.CurrentValue >= totalCost)
 			{
-				resource.Consume(totalCost);
+				resource.Consume(totalCost, TimeManager.UNSET_TICK);
 			}
 		}
 		else if (HasResource(character)) // consume is handled after we check all the resources exist
@@ -245,7 +246,7 @@ public class Ability
 				if (character.AttributeController.TryGetResourceAttribute(pair.Key.Name, out resource) &&
 					resource.CurrentValue < pair.Value)
 				{
-					resource.Consume(pair.Value);
+					resource.Consume(pair.Value, TimeManager.UNSET_TICK);
 				}
 			}
 		}
